@@ -31,6 +31,7 @@ function defaultFilters() {
     status: 'available',
     starter: 'ALL',
     sort: 'our',
+    slotByRole: { P:'ALL', D:'ALL', C:'ALL', A:'ALL' },
     injuredOnly: false,
     penaltyOnly: false,
     pairOnly: false
@@ -47,6 +48,7 @@ async function init() {
     app.config = config;
     app.state = loadJSON(STORAGE_KEY) || emptyState();
     app.filters = { ...defaultFilters(), ...(loadJSON(FILTER_KEY) || {}) };
+    app.filters.slotByRole = { ...defaultFilters().slotByRole, ...(app.filters.slotByRole || {}) };
     app.state.budgetStart = app.config?.league?.budget || app.state.budgetStart || 550;
     app.state.dataVersion = playersData.data_version || config.data_version || null;
     normalizeState();
@@ -120,6 +122,14 @@ function handleClick(e) {
   if (action === 'remove-mine') removeMine(id);
   if (action === 'filter-status') { app.filters.status = el.dataset.value; saveFilters(); render(); openDrawer(); }
   if (action === 'filter-starter') { app.filters.starter = el.dataset.value; saveFilters(); render(); openDrawer(); }
+  if (action === 'filter-slot') {
+    const role = app.route.role;
+    if (role) {
+      app.filters.slotByRole = app.filters.slotByRole || { P:'ALL', D:'ALL', C:'ALL', A:'ALL' };
+      app.filters.slotByRole[role] = el.dataset.value || 'ALL';
+      saveFilters(); render(); openDrawer();
+    }
+  }
   if (action === 'confirm-export-backup') confirmDialog('Esportare il backup completo?', 'Verrà creato un file JSON con lo stato attuale dell’asta.', () => exportBackup());
   if (action === 'confirm-export-team') confirmDialog('Esportare la rosa per ChatGPT?', 'Verrà creato un file TXT leggibile con rosa, prezzi, slot e budget.', () => exportTeamText());
   if (action === 'import') document.getElementById('importFileInput').click();
@@ -251,6 +261,8 @@ function getFilteredPlayers(role, query='') {
     if (app.filters.status !== 'all' && st !== app.filters.status) return false;
     if (q && !searchable(p).includes(q)) return false;
     if (app.filters.starter !== 'ALL' && starterBucket(p.starter_status) !== app.filters.starter) return false;
+    const slotFilter = app.filters.slotByRole?.[role] || 'ALL';
+    if (slotFilter !== 'ALL' && String(p.slot || '').toUpperCase() !== slotFilter) return false;
     if (app.filters.injuredOnly && !isInjured(p)) return false;
     if (app.filters.penaltyOnly && !hasPenaltyDuty(p)) return false;
     if (app.filters.pairOnly && !p.pair_recommendation) return false;
@@ -467,6 +479,18 @@ function openDrawer() {
   const d=document.getElementById('filterDrawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false');
 }
 function closeDrawer() { const d=document.getElementById('filterDrawer'); d.classList.remove('open'); d.setAttribute('aria-hidden','true'); }
+function slotFilterValues(role) {
+  if (!role) return ['ALL'];
+  const values = new Set();
+  for (const d of slotDefs(role) || []) if (d?.slot) values.add(String(d.slot).toUpperCase());
+  for (const p of app.players) if (p.role === role && p.slot) values.add(String(p.slot).toUpperCase());
+  return ['ALL', ...Array.from(values).sort((a,b) => {
+    const am = a.match(/^(\D+)(\d+)$/), bm = b.match(/^(\D+)(\d+)$/);
+    if (am && bm && am[1] === bm[1]) return Number(am[2]) - Number(bm[2]);
+    return a.localeCompare(b, 'it', {numeric:true});
+  })];
+}
+
 function refreshDrawerContent() {
   const root=document.getElementById('drawerContent'); if(!root || !app.route.role) return;
   root.innerHTML = `<div class="filter-block"><h3>Stato</h3><div class="segment">
@@ -474,6 +498,9 @@ function refreshDrawerContent() {
   </div></div>
   <div class="filter-block"><h3>Titolarità</h3><div class="segment">
     ${[['ALL','Tutti'],['LOCK','🔒 Lock'],['FAV','● Favorito'],['ROT','● Rotazione'],['BAL','● Ballottaggio']].map(([v,l])=>`<button data-action="filter-starter" data-value="${v}" class="${app.filters.starter===v?'active':''}">${l}</button>`).join('')}
+  </div></div>
+  <div class="filter-block"><h3>Slot</h3><div class="segment slot-segment">
+    ${slotFilterValues(app.route.role).map(v=>`<button data-action="filter-slot" data-value="${v}" class="${(app.filters.slotByRole?.[app.route.role] || 'ALL')===v?'active':''}">${v==='ALL'?'Tutti':v}</button>`).join('')}
   </div></div>
   <div class="filter-block"><h3>Ordina per</h3><select id="sortSelect">
     ${[['our','Priorità nostra'],['sos','Tier SOS Fanta'],['apps','Presenze prime 4'],['mv','Media voto'],['fm','Fantamedia'],['max','MAX / STOP'],['name','Nome']].map(([v,l])=>`<option value="${v}" ${app.filters.sort===v?'selected':''}>${l}</option>`).join('')}

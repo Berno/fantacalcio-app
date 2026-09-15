@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fantasta-2026-27-v1';
+const CACHE_NAME = 'fantasta-2026-27-v2';
 const ASSETS = [
   './',
   './index.html',

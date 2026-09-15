@@ -1,0 +1,445 @@
+{
+  "schema_version": "1.0.0",
+  "data_version": "2026-09-15.2",
+  "generated_at": "2026-09-15",
+  "league": {
+    "name": "Fantacalcio 2026/27",
+    "participants": 10,
+    "budget": 550,
+    "roster": {
+      "P": 3,
+      "D": 10,
+      "C": 10,
+      "A": 7
+    },
+    "allowed_modifier_defense_modules": [
+      "4-3-3",
+      "4-4-2",
+      "4-5-1"
+    ],
+    "bonuses": {
+      "goal": 3,
+      "goal_conceded": -1,
+      "penalty_scored": 3,
+      "penalty_missed": -3,
+      "penalty_saved": 3,
+      "yellow_card": -0.5,
+      "red_card": -1,
+      "own_goal": {
+        "P": -1,
+        "D": -2,
+        "C": -2,
+        "A": -2
+      },
+      "assist": 1,
+      "goalkeeper_clean_sheet": 1
+    },
+    "defense_modifier": {
+      "enabled": true,
+      "requires_at_least_defenders": 4,
+      "components": "goalkeeper + best 3 defenders, pure ratings",
+      "thresholds": [
+        {
+          "min_average": 7.0,
+          "bonus": 5
+        },
+        {
+          "min_average": 6.5,
+          "max_average_exclusive": 7.0,
+          "bonus": 3
+        },
+        {
+          "min_average": 6.0,
+          "max_average_exclusive": 6.5,
+          "bonus": 1
+        }
+      ]
+    },
+    "midfield_modifier": {
+      "enabled": true,
+      "competitive": true,
+      "missing_midfielder_virtual_rating": 5,
+      "difference_to_bonus": [
+        {
+          "min": 0,
+          "max": 0.99,
+          "bonus": 0
+        },
+        {
+          "min": 1,
+          "max": 1.99,
+          "bonus": 0.5
+        },
+        {
+          "min": 2,
+          "max": 2.99,
+          "bonus": 1
+        },
+        {
+          "min": 3,
+          "max": 3.99,
+          "bonus": 1.5
+        },
+        {
+          "min": 4,
+          "max": 4.99,
+          "bonus": 2
+        },
+        {
+          "min": 5,
+          "max": 5.99,
+          "bonus": 2.5
+        },
+        {
+          "min": 6,
+          "max": 6.99,
+          "bonus": 3
+        },
+        {
+          "min": 7,
+          "max": 7.99,
+          "bonus": 3.5
+        },
+        {
+          "min": 8,
+          "max": null,
+          "bonus": 4
+        }
+      ]
+    },
+    "rounding": {
+      "decimals": 2,
+      "mode": "ROUND_HALF_UP",
+      "example": "6.625 -> 6.63"
+    }
+  },
+  "auction_strategy": {
+    "budgets": {
+      "P": {
+        "ideal": [
+          42,
+          50
+        ],
+        "hard_stop": 55
+      },
+      "D": {
+        "ideal": [
+          75,
+          85
+        ],
+        "soft_stop": [
+          90,
+          95
+        ]
+      },
+      "C": {
+        "ideal": [
+          115,
+          130
+        ],
+        "rule": "oltre 130 solo se P+D sotto budget; preservare almeno 280 per A"
+      },
+      "A": {
+        "ideal": [
+          280,
+          300
+        ],
+        "scenarios": [
+          {
+            "credits": "300+",
+            "approach": "massima flessibilita"
+          },
+          {
+            "credits": "280-300",
+            "approach": "2-3 forti o supertop entro STOP"
+          },
+          {
+            "credits": "250-279",
+            "approach": "top + value o reparto diffuso"
+          },
+          {
+            "credits": "230-249",
+            "approach": "supertop + low cost / value diffusi"
+          },
+          {
+            "credits": "<230",
+            "approach": "emergenza: voto sicuro e coppie value"
+          }
+        ]
+      }
+    },
+    "role_slots": {
+      "P": [
+        {
+          "slot": "P1",
+          "profile": "Porta top/alta",
+          "quantity": 1
+        },
+        {
+          "slot": "P2",
+          "profile": "Vice/copertura o titolare alternabile",
+          "quantity": 1
+        },
+        {
+          "slot": "P3",
+          "profile": "Titolare alternabile/value",
+          "quantity": 1
+        }
+      ],
+      "D": [
+        {
+          "slot": "D1",
+          "profile": "Pilastro modificatore",
+          "quantity": 1,
+          "preferred": [
+            "Bremer",
+            "Bastoni",
+            "Solet",
+            "Pavlovic"
+          ]
+        },
+        {
+          "slot": "D2",
+          "profile": "Secondo pilastro voto",
+          "quantity": 1,
+          "preferred": [
+            "Gila",
+            "Akanji",
+            "Rrahmani",
+            "Mancini",
+            "Di Lorenzo"
+          ]
+        },
+        {
+          "slot": "D3",
+          "profile": "Qualita-prezzo",
+          "quantity": 1,
+          "preferred": [
+            "Scalvini",
+            "Ndicka",
+            "Kalulu",
+            "Ostigard",
+            "Chalobah"
+          ]
+        },
+        {
+          "slot": "D4",
+          "profile": "Offensivo/bonus",
+          "quantity": "1-2",
+          "preferred": [
+            "Dimarco",
+            "Wesley",
+            "Molina",
+            "Spinazzola",
+            "Tavares",
+            "Zappacosta"
+          ]
+        },
+        {
+          "slot": "D5",
+          "profile": "Titolare solido",
+          "quantity": 2,
+          "preferred": [
+            "Valeri",
+            "Vazquez",
+            "Delprato",
+            "Tiago Gabriel"
+          ]
+        },
+        {
+          "slot": "D6",
+          "profile": "Titolare economico/modificatore",
+          "quantity": "1-2",
+          "preferred": [
+            "Doekhi",
+            "Theate",
+            "Mina",
+            "Kristensen",
+            "Lucumi"
+          ]
+        },
+        {
+          "slot": "D7-D8",
+          "profile": "Low cost titolari",
+          "quantity": 2
+        },
+        {
+          "slot": "D9",
+          "profile": "Scommessa upside",
+          "quantity": "max 1"
+        },
+        {
+          "slot": "D10",
+          "profile": "Voto sicuro",
+          "quantity": 1
+        }
+      ],
+      "C": [
+        {
+          "slot": "C1",
+          "profile": "Top assoluto / primo slot",
+          "quantity": 1,
+          "preferred": [
+            "Paz N.",
+            "Calhanoglu",
+            "De Ketelaere",
+            "Rabiot",
+            "McTominay"
+          ]
+        },
+        {
+          "slot": "C2",
+          "profile": "Secondo top/semitop da bonus",
+          "quantity": 1,
+          "preferred": [
+            "Vlasic",
+            "Baturina",
+            "Pulisic",
+            "Kessie",
+            "Frattesi"
+          ]
+        },
+        {
+          "slot": "C3",
+          "profile": "Ibrido voto + bonus",
+          "quantity": 1,
+          "preferred": [
+            "McKennie",
+            "Barella",
+            "Da Cunha",
+            "Atta"
+          ]
+        },
+        {
+          "slot": "C4",
+          "profile": "Offensivo listato CC",
+          "quantity": "1-2"
+        },
+        {
+          "slot": "C5",
+          "profile": "M+ rendimento",
+          "quantity": "1-2"
+        },
+        {
+          "slot": "C6",
+          "profile": "Value qualita-prezzo",
+          "quantity": "1-2"
+        },
+        {
+          "slot": "C7-C8",
+          "profile": "Low cost titolari",
+          "quantity": 2
+        },
+        {
+          "slot": "C9",
+          "profile": "Jolly/scommessa",
+          "quantity": "max 1-2"
+        },
+        {
+          "slot": "C10",
+          "profile": "Voto sicuro",
+          "quantity": 1
+        }
+      ],
+      "A": [
+        {
+          "slot": "A1",
+          "profile": "Supertop o top forte",
+          "quantity": 1
+        },
+        {
+          "slot": "A2",
+          "profile": "Secondo forte / semitop",
+          "quantity": 1
+        },
+        {
+          "slot": "A3",
+          "profile": "Terzo realmente schierabile",
+          "quantity": 1
+        },
+        {
+          "slot": "A4",
+          "profile": "Value / jolly forte",
+          "quantity": 1
+        },
+        {
+          "slot": "A5",
+          "profile": "Titolare provinciale",
+          "quantity": 1
+        },
+        {
+          "slot": "A6",
+          "profile": "Low cost con voto",
+          "quantity": 1
+        },
+        {
+          "slot": "A7",
+          "profile": "Scommessa / copertura",
+          "quantity": 1
+        }
+      ]
+    }
+  },
+  "role_overrides": {
+    "SOS_C_to_league_A": [
+      "Orsolini",
+      "Gudmundsson",
+      "Njie",
+      "Nico Gonzalez"
+    ],
+    "SOS_A_to_league_C": [
+      "Yildiz",
+      "De Ketelaere",
+      "Neres",
+      "Alisson Santos",
+      "Boga",
+      "Lang",
+      "Maldini"
+    ]
+  },
+  "stats_definition": {
+    "source": "Gazzetta dello Sport - redazione Milano (colonna GdS nei file giornata)",
+    "season": "2026-27",
+    "current_rounds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "fields": [
+      "appearances",
+      "average_rating",
+      "fantasy_average",
+      "goals",
+      "assists",
+      "yellow_cards",
+      "red_cards",
+      "own_goals",
+      "penalties_scored",
+      "penalties_missed",
+      "penalties_saved",
+      "goals_conceded",
+      "clean_sheets"
+    ],
+    "calculation": "fantasy average = mean of GdS pure rating plus league bonus/malus; no-vote rounds excluded",
+    "rounding": "ROUND_HALF_UP to 2 decimals"
+  },
+  "runtime_state_model": {
+    "storage": "localStorage (PWA v1)",
+    "key_prefix": "fantasta26",
+    "player_status_values": [
+      "available",
+      "mine",
+      "other"
+    ],
+    "fields": [
+      "player_id",
+      "status",
+      "purchase_price",
+      "owner",
+      "assigned_slot",
+      "updated_at"
+    ],
+    "note": "runtime auction state must stay separate from static players dataset so guide/stat updates never overwrite purchases."
+  }
+}

@@ -112,6 +112,8 @@ function handleClick(e) {
   if (action === 'slots') openSlots(app.route.role);
   if (action === 'settings') openSettings();
   if (action === 'mark-other') markOther(id);
+  if (action === 'reset-other') resetOther(id);
+  if (action === 'clear-role-search') clearRoleSearch();
   if (action === 'buy-start') toggleBuyPanel(id);
   if (action === 'buy-confirm') confirmBuy(id);
   if (action === 'undo') undoLast();
@@ -126,7 +128,7 @@ function handleClick(e) {
 }
 
 function handleInput(e) {
-  if (e.target.id === 'roleSearch') { app.route.query = e.target.value; renderRoleListOnly(); }
+  if (e.target.id === 'roleSearch') { app.route.query = e.target.value; const clearBtn=document.querySelector('.search-clear'); if(clearBtn) clearBtn.hidden=!e.target.value; renderRoleListOnly(); }
   if (e.target.id === 'globalSearch') renderGlobalResults(e.target.value);
   if (e.target.dataset.buyInput) {
     // no-op: lettura al click conferma
@@ -172,7 +174,7 @@ function headerBase({role=null, toolbar=false}={}) {
       <button class="icon-btn" data-action="settings" aria-label="Impostazioni e backup">⚙️</button>
     </div>
     ${toolbar ? `<div class="role-toolbar">
-      <div class="searchbox"><span>🔍</span><input id="roleSearch" value="${escapeAttr(app.route.query || '')}" autocomplete="off" placeholder="Cerca ${ROLE_LABELS[role].toLowerCase()}..." aria-label="Cerca giocatore" /></div>
+      <div class="searchbox"><span>🔍</span><input id="roleSearch" value="${escapeAttr(app.route.query || '')}" autocomplete="off" placeholder="Cerca ${ROLE_LABELS[role].toLowerCase()}..." aria-label="Cerca giocatore" /><button class="search-clear" data-action="clear-role-search" aria-label="Cancella ricerca" ${app.route.query ? '' : 'hidden'}>×</button></div>
       <button class="toolbar-btn" data-action="slots" aria-label="Composizione ideale per slot">🧩 <span class="label">Slot</span></button>
       <button class="toolbar-btn" data-action="roster" aria-label="Rosa in composizione">👕 <span class="label">Rosa</span></button>
       <button class="toolbar-btn" data-action="filters" aria-label="Filtri e ordinamento">☰ <span class="label">Filtri</span></button>
@@ -264,7 +266,7 @@ function sorter(type) {
   if (type === 'fm') return (a,b) => (b.stats?.fantasy_average ?? -1)-(a.stats?.fantasy_average ?? -1) || a.rank-b.rank;
   if (type === 'max') return (a,b) => maxValue(b)-maxValue(a) || a.rank-b.rank;
   if (type === 'name') return (a,b) => a.name.localeCompare(b.name,'it');
-  return (a,b) => (a.rank ?? 9999)-(b.rank ?? 9999);
+  return (a,b) => priorityScore(a.priority_band)-priorityScore(b.priority_band) || (a.rank ?? 9999)-(b.rank ?? 9999);
 }
 
 function playerCard(p) {
@@ -285,7 +287,7 @@ function playerCard(p) {
         ${statusMini}
       </div>
       <div class="meta-line">
-        <span class="chip primary">${escapeHtml(p.priority_band || '—')}</span>
+        ${priorityMarkup(p)}
         ${p.slot ? `<span class="chip slot">${escapeHtml(p.slot)}</span>` : ''}
         <span class="chip">SOS ${escapeHtml(p.sos_tier || '—')}</span>
         <span class="chip starter">${starter.icon}${starter.text ? ' '+escapeHtml(starter.text) : ''}</span>
@@ -297,7 +299,7 @@ function playerCard(p) {
       ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
       ${statsMarkup(p)}
     </div>
-    ${st.status === 'available' ? `<div class="card-actions"><button class="action-btn mine" data-action="buy-start" data-id="${p.id}">✅ MIO</button><button class="action-btn other" data-action="mark-other" data-id="${p.id}">✕ PRESO</button></div>${buyPanel}` : ''}
+    ${st.status === 'available' ? `<div class="card-actions"><button class="action-btn mine" data-action="buy-start" data-id="${p.id}">✅ MIO</button><button class="action-btn other" data-action="mark-other" data-id="${p.id}">✕ PRESO</button></div>${buyPanel}` : st.status === 'other' ? `<div class="card-actions"><button class="action-btn reset" data-action="reset-other" data-id="${p.id}">↩ DISPONIBILE</button></div>` : ''}
   </article>`;
 }
 
@@ -313,16 +315,27 @@ function priceMarkup(p) {
   return `<span class="chip money">💰 ${escapeHtml(String(txt))}</span>`;
 }
 
+function priorityMarkup(p) {
+  const band = (p.priority_band || '—').toUpperCase();
+  const icons = { TARGET:'🎯', VALUE:'💎', ALTERNATIVE:'🧭', JOLLY:'🎲', LOW_COST:'🪙', SCOMMESSA:'🧪' };
+  return `<span class="chip primary">${icons[band] || '🏷️'} ${escapeHtml(band)}</span>`;
+}
+
+function priorityScore(band='') {
+  return ({TARGET:0,VALUE:1,ALTERNATIVE:2,JOLLY:3,LOW_COST:4,SCOMMESSA:5})[String(band).toUpperCase()] ?? 9;
+}
+
 function profileMarkup(p) {
   const raw = (p.profile || '').trim();
-  let icon='💠', text=raw || p.priority_band || '—';
+  if (!raw) return '';
+  let icon='💠', text=raw;
   const u = raw.toUpperCase();
   if (u.includes('GK')) icon='🧤';
   else if (u.includes('IBRIDO')) icon='🔀';
   else if (u.includes('BONUS')) icon='⚡';
   else if (/M\+|M\+\+|\bM\b/.test(u)) icon='🛡️';
-  else if ((p.priority_band || '').includes('VALUE')) icon='💰';
-  else if ((p.priority_band || '').includes('SCOMMESSA') || (p.priority_band || '').includes('JOLLY')) icon='🎲';
+  else if (u.includes('VALUE')) icon='💰';
+  else if (u.includes('SCOMMESSA') || u.includes('JOLLY') || u.includes('UPSIDE')) icon='🎲';
   return `<span class="chip">${icon} ${escapeHtml(text)}</span>`;
 }
 
@@ -410,6 +423,24 @@ function markOther(id) {
   setUndo(`${p.name} segnato come preso`, () => { app.state.playerStates[id]=prev; saveState(); render(); });
   render();
 }
+function resetOther(id) {
+  const prev = clone(getPlayerState(id)); const p=findPlayer(id);
+  app.state.playerStates[id] = { status:'available', price:null, assignedSlot:null };
+  saveState();
+  setUndo(`${p.name} di nuovo disponibile`, () => { app.state.playerStates[id]=prev; saveState(); render(); });
+  render();
+}
+
+function clearRoleSearch() {
+  app.route.query='';
+  const input=document.getElementById('roleSearch');
+  if(input) input.value='';
+  const clearBtn=document.querySelector('.search-clear');
+  if(clearBtn) clearBtn.hidden=true;
+  renderRoleListOnly();
+  setTimeout(()=>document.getElementById('roleSearch')?.focus(),0);
+}
+
 function removeMine(id) {
   const prev = clone(getPlayerState(id)); const p=findPlayer(id);
   app.state.playerStates[id] = { status:'available', price:null, assignedSlot:null };

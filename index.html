@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f2d4a" />
+  <meta name="description" content="Assistente d'asta Fantacalcio 2026/27 offline-first" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/app-icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>FantAsta 26/27</title>
+</head>
+<body>
+  <div id="app" class="app-shell" aria-live="polite"></div>
+
+  <aside id="filterDrawer" class="drawer" aria-hidden="true">
+    <div class="drawer__scrim" data-close-drawer></div>
+    <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="Filtri e ordinamento">
+      <div class="drawer__header">
+        <div>
+          <div class="eyebrow">Filtri rapidi</div>
+          <h2>Vista reparto</h2>
+        </div>
+        <button class="icon-btn" data-close-drawer aria-label="Chiudi filtri">✕</button>
+      </div>
+      <div id="drawerContent"></div>
+    </div>
+  </aside>
+
+  <div id="modalRoot"></div>
+  <div id="toastRoot" class="toast-root" aria-live="assertive"></div>
+
+  <input id="importFileInput" type="file" accept="application/json,.json" hidden />
+  <script src="app.js" defer></script>
+</body>
+</html>

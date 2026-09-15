@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#0f2d4a"/>
+  <circle cx="256" cy="256" r="166" fill="#f7f9fb"/>
+  <path d="M256 121l59 43-22 69h-74l-22-69 59-43zm-117 93l70 4 23 70-60 44-57-42 24-76zm234 0l24 76-57 42-60-44 23-70 70-4zm-193 137l58-42 60 44-22 69h-73l-23-71zm152 2l58-42-9 71-61 42-22-69 34-2z" fill="#0f2d4a"/>
+  <text x="256" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="700" fill="#f7f9fb">FA</text>
+</svg>

@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fantacalcio player dataset",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "data_version",
+    "league",
+    "players"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "data_version": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "league": {
+      "type": "object"
+    },
+    "auction_strategy": {
+      "type": "object"
+    },
+    "role_overrides": {
+      "type": "object"
+    },
+    "stats_definition": {
+      "type": "object"
+    },
+    "runtime_state_model": {
+      "type": "object"
+    },
+    "players": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/player"
+      }
+    }
+  },
+  "$defs": {
+    "bidRange": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "min": {
+          "type": "integer"
+        },
+        "max": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ]
+    },
+    "player": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "role",
+        "team",
+        "stats"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "normalized_name": {
+          "type": "string"
+        },
+        "team": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "enum": [
+            "P",
+            "D",
+            "C",
+            "A"
+          ]
+        },
+        "sos_role": {
+          "enum": [
+            "P",
+            "D",
+            "C",
+            "A"
+          ]
+        },
+        "sos_tier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rank": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "priority_band": {
+          "type": "string"
+        },
+        "starter_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "slot": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "max_bid": {
+          "$ref": "#/$defs/bidRange"
+        },
+        "target_bid": {
+          "$ref": "#/$defs/bidRange"
+        },
+        "stop_bid": {
+          "$ref": "#/$defs/bidRange"
+        },
+        "penalties": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "alternative": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pair_recommendation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "availability": {
+          "type": "object"
+        },
+        "stats": {
+          "type": "object"
+        },
+        "auction_default": {
+          "type": "object"
+        },
+        "source": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

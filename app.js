@@ -11,6 +11,8 @@ const TEAM_CODES = {
   Venezia:'VEN', Verona:'VER', Frosinone:'FRO'
 };
 
+const APP_VERSION = '1.5';
+
 const app = {
   players: [], config: null, state: null, filters: null, route: { view:'home', role:null, query:'' },
   undo: null, installPrompt: null
@@ -31,7 +33,7 @@ function defaultFilters() {
     status: 'available',
     starter: 'ALL',
     sort: 'our',
-    slotByRole: { P:'ALL', D:'ALL', C:'ALL', A:'ALL' },
+    slotByRole: { P:[], D:[], C:[], A:[] },
     injuredOnly: false,
     penaltyOnly: false,
     pairOnly: false
@@ -49,6 +51,11 @@ async function init() {
     app.state = loadJSON(STORAGE_KEY) || emptyState();
     app.filters = { ...defaultFilters(), ...(loadJSON(FILTER_KEY) || {}) };
     app.filters.slotByRole = { ...defaultFilters().slotByRole, ...(app.filters.slotByRole || {}) };
+    for (const role of Object.keys(app.filters.slotByRole)) {
+      const raw = app.filters.slotByRole[role];
+      if (raw === 'ALL' || raw == null) app.filters.slotByRole[role] = [];
+      else if (!Array.isArray(raw)) app.filters.slotByRole[role] = [String(raw)];
+    }
     app.state.budgetStart = app.config?.league?.budget || app.state.budgetStart || 550;
     app.state.dataVersion = playersData.data_version || config.data_version || null;
     normalizeState();
@@ -125,8 +132,17 @@ function handleClick(e) {
   if (action === 'filter-slot') {
     const role = app.route.role;
     if (role) {
-      app.filters.slotByRole = app.filters.slotByRole || { P:'ALL', D:'ALL', C:'ALL', A:'ALL' };
-      app.filters.slotByRole[role] = el.dataset.value || 'ALL';
+      app.filters.slotByRole = app.filters.slotByRole || { P:[], D:[], C:[], A:[] };
+      const value = el.dataset.value || 'ALL';
+      let selected = Array.isArray(app.filters.slotByRole[role]) ? [...app.filters.slotByRole[role]] : [];
+      if (value === 'ALL') {
+        selected = [];
+      } else if (selected.includes(value)) {
+        selected = selected.filter(v => v !== value);
+      } else {
+        selected.push(value);
+      }
+      app.filters.slotByRole[role] = selected;
       saveFilters(); render(); openDrawer();
     }
   }
@@ -174,7 +190,7 @@ function headerBase({role=null, toolbar=false}={}) {
   return `<header class="topbar">
     <div class="topbar__main">
       <button class="icon-btn" data-action="home" aria-label="Home">⌂</button>
-      <div class="brand"><div class="brand__mark">FA</div><div class="brand__text"><strong>FantAsta 26/27</strong><span>${escapeHtml(app.state.dataVersion || '')}</span></div></div>
+      <div class="brand"><div class="brand__mark">FA</div><div class="brand__text"><strong>FantAsta 26/27 <span class="app-version">v${APP_VERSION}</span></strong><span>Dati ${escapeHtml(app.state.dataVersion || '')}</span></div></div>
       <div class="topbar__spacer"></div>
       <div class="kpi-inline">
         <span class="kpi-pill">💰 ${residual}</span>
@@ -261,8 +277,8 @@ function getFilteredPlayers(role, query='') {
     if (app.filters.status !== 'all' && st !== app.filters.status) return false;
     if (q && !searchable(p).includes(q)) return false;
     if (app.filters.starter !== 'ALL' && starterBucket(p.starter_status) !== app.filters.starter) return false;
-    const slotFilter = app.filters.slotByRole?.[role] || 'ALL';
-    if (slotFilter !== 'ALL' && String(p.slot || '').toUpperCase() !== slotFilter) return false;
+    const slotFilters = Array.isArray(app.filters.slotByRole?.[role]) ? app.filters.slotByRole[role] : [];
+    if (slotFilters.length && !slotFilters.includes(String(p.slot || '').toUpperCase())) return false;
     if (app.filters.injuredOnly && !isInjured(p)) return false;
     if (app.filters.penaltyOnly && !hasPenaltyDuty(p)) return false;
     if (app.filters.pairOnly && !p.pair_recommendation) return false;
@@ -500,8 +516,12 @@ function refreshDrawerContent() {
     ${[['ALL','Tutti'],['LOCK','🔒 Lock'],['FAV','● Favorito'],['ROT','● Rotazione'],['BAL','● Ballottaggio']].map(([v,l])=>`<button data-action="filter-starter" data-value="${v}" class="${app.filters.starter===v?'active':''}">${l}</button>`).join('')}
   </div></div>
   <div class="filter-block"><h3>Slot</h3><div class="segment slot-segment">
-    ${slotFilterValues(app.route.role).map(v=>`<button data-action="filter-slot" data-value="${v}" class="${(app.filters.slotByRole?.[app.route.role] || 'ALL')===v?'active':''}">${v==='ALL'?'Tutti':v}</button>`).join('')}
-  </div></div>
+    ${slotFilterValues(app.route.role).map(v=>{
+      const selected = Array.isArray(app.filters.slotByRole?.[app.route.role]) ? app.filters.slotByRole[app.route.role] : [];
+      const active = v === 'ALL' ? selected.length === 0 : selected.includes(v);
+      return `<button data-action="filter-slot" data-value="${v}" class="${active?'active':''}">${v==='ALL'?'Tutti':v}</button>`;
+    }).join('')}
+  </div><div class="subtle" style="margin-top:6px">Puoi selezionare più slot contemporaneamente.</div></div>
   <div class="filter-block"><h3>Ordina per</h3><select id="sortSelect">
     ${[['our','Priorità nostra'],['sos','Tier SOS Fanta'],['apps','Presenze prime 4'],['mv','Media voto'],['fm','Fantamedia'],['max','MAX / STOP'],['name','Nome']].map(([v,l])=>`<option value="${v}" ${app.filters.sort===v?'selected':''}>${l}</option>`).join('')}
   </select></div>

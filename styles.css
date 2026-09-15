@@ -253,3 +253,16 @@ a { color: inherit; }
 }
 
 .action-btn.reset { background:#eef4f8; color:#23465e; border-color:#c8d8e4; }
+
+.app-version{
+  display:inline-block;
+  margin-left:4px;
+  padding:1px 6px;
+  border-radius:999px;
+  font-size:.72em;
+  font-weight:800;
+  line-height:1.35;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.2);
+  vertical-align:1px;
+}
